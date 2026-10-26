@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skill Swap Hub Dashboard</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f3f5fb;color:#1e293b}
+header{background:linear-gradient(135deg,#172554,#4338ca);color:white;padding:25px 5%}
+header h1{margin-bottom:8px}
+.layout{display:flex;min-height:calc(100vh - 100px)}
+aside{width:220px;background:#fff;padding:22px 14px;border-right:1px solid #e5e7eb}
+aside button{display:block;width:100%;text-align:left;background:transparent;color:#334155;margin-bottom:8px}
+aside button.active,aside button:hover{background:#e0e7ff;color:#3730a3}
+button{border:0;border-radius:8px;padding:11px 14px;cursor:pointer;font-size:14px}
+main{flex:1;min-width:0;padding:28px}
+.page{display:none}
+.page.active{display:block}
+.heading{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.card,.panel{background:#fff;border:1px solid #e5eaf2;border-radius:12px;padding:20px;box-shadow:0 3px 12px #1e293b08}
+.card p{font-size:14px;color:#64748b}
+.card h2{font-size:32px;margin-top:12px;color:#172554}
+.panel{margin-top:22px}
+.panel h3{margin-bottom:15px}
+.primary{background:#4338ca;color:#fff}
+input{width:100%;max-width:380px;padding:12px;border:1px solid #cbd5e1;border-radius:8px;margin:12px 0}
+.table-wrap{overflow-x:auto}
+table{width:100%;min-width:650px;border-collapse:collapse}
+th,td{text-align:left;padding:13px;border-bottom:1px solid #e5e7eb;font-size:13px;vertical-align:top}
+th{background:#f8fafc;color:#475569}
+.badge{display:inline-block;padding:5px 9px;background:#e0e7ff;color:#3730a3;border-radius:15px}
+#status{margin:12px 0;color:#64748b;font-size:14px}
+.empty{padding:20px;text-align:center;color:#64748b}
+footer{text-align:center;padding:20px;color:#64748b;font-size:13px}
+@media(max-width:950px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}aside{width:170px}}
+@media(max-width:600px){.layout{display:block}aside{width:100%;display:flex;overflow-x:auto;gap:5px}aside button{white-space:nowrap;width:auto}main{padding:16px}.cards{gap:10px}.card{padding:14px}.card h2{font-size:25px}}
+</style>
+</head>
+
+<body>
+<header>
+  <h1>Skill Swap Hub</h1>
+  <p>Learn, Teach & Exchange Skills</p>
+</header>
+
+<div class="layout">
+<aside>
+  <button class="active" data-page="overview">🏠 Overview</button>
+  <button data-page="usersPage">👥 Users</button>
+  <button data-page="skillsPage">📚 Skills</button>
+  <button data-page="swapsPage">🔄 Swap Requests</button>
+</aside>
+
+<main>
+<section id="overview" class="page active">
+  <div class="heading">
+    <h2>Dashboard Overview</h2>
+    <button class="primary" onclick="refreshAll()">↻ Refresh All</button>
+  </div>
+
+  <div class="cards">
+    <div class="card"><p>Total Users</p><h2 id="usersCount">—</h2></div>
+    <div class="card"><p>Total Skills</p><h2 id="skillsCount">—</h2></div>
+    <div class="card"><p>Total Swap Requests</p><h2 id="swapsCount">—</h2></div>
+    <div class="card"><p>Pending Swaps</p><h2 id="pendingCount">—</h2></div>
+  </div>
+
+  <div class="panel">
+    <h3>Recent Swap Requests</h3>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Request ID</th><th>Requester</th><th>Receiver</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody id="recentRows"><tr><td colspan="5">Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="usersPage" class="page">
+  <div class="heading"><h2>Registered Users</h2><button class="primary" onclick="loadUsers()">↻ Refresh</button></div>
+  <input id="userSearch" placeholder="Search name, email or location..." oninput="renderUsers()">
+  <div class="panel table-wrap">
+    <table><thead><tr><th>Name</th><th>Email</th><th>Location</th><th>Bio</th><th>Joined</th></tr></thead>
+    <tbody id="userRows"><tr><td colspan="5">Loading...</td></tr></tbody></table>
+  </div>
+</section>
+
+<section id="skillsPage" class="page">
+  <div class="heading"><h2>Available Skills</h2><button class="primary" onclick="loadSkills()">↻ Refresh</button></div>
+  <input id="skillSearch" placeholder="Search skill, category or creator..." oninput="renderSkills()">
+  <div class="panel table-wrap">
+    <table><thead><tr><th>Skill</th><th>Category</th><th>Description</th><th>Created By</th><th>Date</th></tr></thead>
+    <tbody id="skillRows"><tr><td colspan="5">Loading...</td></tr></tbody></table>
+  </div>
+</section>
+
+<section id="swapsPage" class="page">
+  <div class="heading"><h2>Swap Requests</h2><button class="primary" onclick="loadSwaps()">↻ Refresh</button></div>
+  <input id="swapSearch" placeholder="Search users, skills or status..." oninput="renderSwaps()">
+  <div class="panel table-wrap">
+    <table><thead><tr><th>Requester</th><th>Receiver</th><th>Offered Skill</th><th>Requested Skill</th><th>Status</th><th>Date</th></tr></thead>
+    <tbody id="swapRows"><tr><td colspan="6">Loading...</td></tr></tbody></table>
+  </div>
+</section>
+
+<p id="status" role="status" aria-live="polite">Connecting to backend...</p>
+</main>
+</div>
+
+<footer>Skill Swap Hub © 2026 | Dashboard</footer>
+
+<script>
+let usersData=[],skillsData=[],swapsData=[];
+
+function cell(row,value){
+  const td=document.createElement("td");
+  td.textContent=value ?? "—";
+  row.appendChild(td);
+  return td;
+}
+
+function date(value){
+  return value ? new Date(value).toLocaleDateString() : "—";
+}
+
+function emptyRow(id,cols,message){
+  const body=document.getElementById(id);
+  body.replaceChildren();
+  const row=document.createElement("tr");
+  const td=document.createElement("td");
+  td.colSpan=cols;
+  td.className="empty";
+  td.textContent=message;
+  row.appendChild(td);
+  body.appendChild(row);
+}
+
+async function getJSON(url){
+  const response=await fetch(url);
+  if(!response.ok) throw new Error(url+" returned "+response.status);
+  return response.json();
+}
+
+async function loadOverview(){
+  const d=await getJSON("/api/dashboard");
+  document.getElementById("usersCount").textContent=d.totalUsers ?? 0;
+  document.getElementById("skillsCount").textContent=d.totalSkills ?? 0;
+  document.getElementById("swapsCount").textContent=d.totalSwaps ?? 0;
+  document.getElementById("pendingCount").textContent=d.pendingSwaps ?? 0;
+
+  const body=document.getElementById("recentRows");
+  body.replaceChildren();
+  if(!d.recentSwaps?.length){emptyRow("recentRows",5,"No swap requests found.");return;}
+
+  d.recentSwaps.forEach(s=>{
+    const row=document.createElement("tr");
+    cell(row,s._id);
+    cell(row,s.requester?.name || s.requester || "—");
+    cell(row,s.receiver?.name || s.receiver || "—");
+    cell(row,s.status || "pending");
+    cell(row,date(s.createdAt));
+    body.appendChild(row);
+  });
+}
+
+async function loadUsers(){
+  usersData=await getJSON("/api/dashboard/users");
+  renderUsers();
+}
+
+function renderUsers(){
+  const q=document.getElementById("userSearch").value.toLowerCase();
+  const rows=usersData.filter(u=>
+    [u.name,u.email,u.location,u.bio].some(v=>String(v||"").toLowerCase().includes(q))
+  );
+  const body=document.getElementById("userRows");
+  body.replaceChildren();
+  if(!rows.length){emptyRow("userRows",5,"No matching users found.");return;}
+  rows.forEach(u=>{
+    const r=document.createElement("tr");
+    cell(r,u.name);cell(r,u.email);cell(r,u.location);cell(r,u.bio);cell(r,date(u.createdAt));
+    body.appendChild(r);
+  });
+}
+
+async function loadSkills(){
+  skillsData=await getJSON("/api/dashboard/skills");
+  renderSkills();
+}
+
+function renderSkills(){
+  const q=document.getElementById("skillSearch").value.toLowerCase();
+  const rows=skillsData.filter(s=>
+    [s.name,s.category,s.description,s.createdBy?.name,s.createdBy?.email]
+    .some(v=>String(v||"").toLowerCase().includes(q))
+  );
+  const body=document.getElementById("skillRows");
+  body.replaceChildren();
+  if(!rows.length){emptyRow("skillRows",5,"No matching skills found.");return;}
+  rows.forEach(s=>{
+    const r=document.createElement("tr");
+    cell(r,s.name);cell(r,s.category);cell(r,s.description);
+    cell(r,s.createdBy?.name || s.createdBy?.email || "—");
+    cell(r,date(s.createdAt));
+    body.appendChild(r);
+  });
+}
+
+async function loadSwaps(){
+  swapsData=await getJSON("/api/dashboard/swaps");
+  renderSwaps();
+}
+
+function renderSwaps(){
+  const q=document.getElementById("swapSearch").value.toLowerCase();
+  const rows=swapsData.filter(s=>{
+    const values=[
+      s.requester?.name,s.requester?.email,
+      s.receiver?.name,s.receiver?.email,
+      s.offeredSkill?.name,s.requestedSkill?.name,s.status
+    ];
+    return values.some(v=>String(v||"").toLowerCase().includes(q));
+  });
+  const body=document.getElementById("swapRows");
+  body.replaceChildren();
+  if(!rows.length){emptyRow("swapRows",6,"No matching swap requests found.");return;}
+  rows.forEach(s=>{
+    const r=document.createElement("tr");
+    cell(r,s.requester?.name || "—");
+    cell(r,s.receiver?.name || "—");
+    cell(r,s.offeredSkill?.name || "—");
+    cell(r,s.requestedSkill?.name || "—");
+    cell(r,s.status || "pending");
+    cell(r,date(s.createdAt));
+    body.appendChild(r);
+  });
+}
+
+async function refreshAll(){
+  const status=document.getElementById("status");
+  status.textContent="Loading live data from MongoDB...";
+  try{
+    const results=await Promise.allSettled([
+      loadOverview(),loadUsers(),loadSkills(),loadSwaps()
+    ]);
+    const failed=results.some(r=>r.status==="rejected");
+    if(failed){
+      console.error("Dashboard loading errors:",results.filter(r=>r.status==="rejected"));
+      status.textContent="Some data could not load. Check the terminal for errors.";
+    }else{
+      status.textContent="Dashboard data refreshed successfully.";
+    }
+  }catch(error){
+    console.error(error);
+    status.textContent="Unable to connect. Check server and API routes.";
+  }
+}
+
+document.querySelectorAll("aside button").forEach(button=>{
+  button.addEventListener("click",()=>{
+    document.querySelectorAll("aside button").forEach(b=>b.classList.remove("active"));
+    document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+    button.classList.add("active");
+    document.getElementById(button.dataset.page).classList.add("active");
+  });
+});
+
+refreshAll();
+</script>
+</body>
+</html>
